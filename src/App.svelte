@@ -1,5 +1,35 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import {onMount} from 'svelte';
+
+  type Background = {
+    type: 'solid',
+    color: string
+  } | {
+    type: 'gradient',
+    option: string
+  } | {
+    type: 'image',
+    file: string
+  }
+
+  const solidBackgrounds = [
+    '#131311',
+    '#333031',
+    '#ffffff',
+    '#eaeaea',
+    '#e52b36',
+    '#f7b2a6',
+    '#f7791f',
+    '#fdbc64',
+    '#f09f1b',
+    '#f8d983',
+    '#128544',
+    '#99e6b0',
+    '#0c7eec',
+    '#9ecff5',
+    '#8032f8',
+    '#ceacf8'
+  ]
 
   let fileInput: HTMLInputElement;
   let previewCanvas: HTMLCanvasElement;
@@ -10,14 +40,13 @@
   let originalHeight = 0;
 
   // UI state
-  let tolerance: number = 20;
+  let tolerance: number = 4;
   let padding: number = 20;
   let borderThickness: number = 0;
   let borderColor: string = '#000000';
-  let borderRadius: number = 0;
+  let borderRadius: number = 20;
   let margin: number = 20;
-  let marginBackground: string = '#ffffff';
-  let backgroundType: string = 'solid';
+  let background: Background = {type: 'solid', color: '#ff0000'};
 
   let croppedCanvas: HTMLCanvasElement;
   let ctxCropped: CanvasRenderingContext2D;
@@ -29,12 +58,18 @@
     ctxPreview = previewCanvas.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
     ctxCropped = croppedCanvas.getContext('2d')!;
+    // TODO: for testing purposes
+    handleFile(null)
   });
 
-  function handleFile(e: Event) {
+  function handleFileEvent(e: Event) {
     const target = e.target as HTMLInputElement;
     const f = target.files?.[0];
     if (!f) return;
+    handleFile(f)
+  }
+
+  function handleFile(f: File | null) {
     image = new Image();
     image.onload = () => {
       originalWidth = image.width;
@@ -46,7 +81,12 @@
       detectAndCrop();
       drawPreview();
     };
-    image.src = URL.createObjectURL(f);
+    // TODO: for testing purposes
+    if (f === null) {
+        image.src = '../public/test.png';
+    } else {
+        image.src = URL.createObjectURL(f);
+    }
   }
 
   function colorDistance(a: number[], b: number[]): number {
@@ -104,7 +144,7 @@
     while (right >= left && colMatches(data, w, h, right, borderColor, tol)) right--;
 
     if (right < left || bottom < top) {
-      croppedRect = { left: 0, top: 0, width: w, height: h };
+      croppedRect = {left: 0, top: 0, width: w, height: h};
       paddingColor = [borderColor[0], borderColor[1], borderColor[2], 255];
       return;
     }
@@ -114,7 +154,7 @@
 
     paddingColor = [borderColor[0], borderColor[1], borderColor[2], 255];
 
-    croppedRect = { left, top, width: cw, height: ch };
+    croppedRect = {left, top, width: cw, height: ch};
     const croppedData = ctxCropped.getImageData(left, top, cw, ch);
     croppedCanvas.width = cw;
     croppedCanvas.height = ch;
@@ -122,41 +162,41 @@
   }
 
   function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    switch (backgroundType) {
+    switch (background.type) {
       case 'solid':
-        ctx.fillStyle = marginBackground;
+        ctx.fillStyle = background.color;
         ctx.fillRect(0, 0, w, h);
         break;
-      case 'linear-gradient':
-        const gradient = ctx.createLinearGradient(0, 0, w, h);
-        gradient.addColorStop(0, '#ff9a9e');
-        gradient.addColorStop(1, '#fad0c4');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, w, h);
-        break;
-      case 'radial-gradient':
-        const radial = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w/2);
-        radial.addColorStop(0, '#a1c4fd');
-        radial.addColorStop(1, '#c2e9fb');
-        ctx.fillStyle = radial;
-        ctx.fillRect(0, 0, w, h);
-        break;
-      case 'blobs':
-        ctx.fillStyle = '#54dcef';
-        ctx.fillRect(0, 0, w, h);
-        for (let i = 0; i < 5; i++) {
-          const x = Math.random() * w;
-          const y = Math.random() * h;
-          const r = 100 + Math.random() * 150;
-          const blobGradient = ctx.createRadialGradient(x, y, 0, x, y, r);
-          blobGradient.addColorStop(0, `hsla(${Math.random()*360}, 70%, 70%, 0.5)`);
-          blobGradient.addColorStop(1, 'transparent');
-          ctx.fillStyle = blobGradient;
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        break;
+      // case 'linear-gradient':
+      //   const gradient = ctx.createLinearGradient(0, 0, w, h);
+      //   gradient.addColorStop(0, '#ff9a9e');
+      //   gradient.addColorStop(1, '#fad0c4');
+      //   ctx.fillStyle = gradient;
+      //   ctx.fillRect(0, 0, w, h);
+      //   break;
+      // case 'radial-gradient':
+      //   const radial = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w/2);
+      //   radial.addColorStop(0, '#a1c4fd');
+      //   radial.addColorStop(1, '#c2e9fb');
+      //   ctx.fillStyle = radial;
+      //   ctx.fillRect(0, 0, w, h);
+      //   break;
+      // case 'blobs':
+      //   ctx.fillStyle = '#54dcef';
+      //   ctx.fillRect(0, 0, w, h);
+      //   for (let i = 0; i < 5; i++) {
+      //     const x = Math.random() * w;
+      //     const y = Math.random() * h;
+      //     const r = 100 + Math.random() * 150;
+      //     const blobGradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+      //     blobGradient.addColorStop(0, `hsla(${Math.random()*360}, 70%, 70%, 0.5)`);
+      //     blobGradient.addColorStop(1, 'transparent');
+      //     ctx.fillStyle = blobGradient;
+      //     ctx.beginPath();
+      //     ctx.arc(x, y, r, 0, Math.PI * 2);
+      //     ctx.fill();
+      //   }
+      //   break;
     }
   }
 
@@ -179,7 +219,7 @@
     ctxPreview.beginPath();
     ctxPreview.roundRect(margin + borderThickness, margin + borderThickness, imgW + padding * 2, imgH + padding * 2, borderRadius);
     ctxPreview.clip();
-    ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3]/255})`;
+    ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3] / 255})`;
     ctxPreview.fillRect(margin + borderThickness, margin + borderThickness, imgW + padding * 2, imgH + padding * 2);
 
     // Draw image inside padding
@@ -189,7 +229,7 @@
     if (borderThickness > 0) {
       ctxPreview.lineWidth = borderThickness;
       ctxPreview.strokeStyle = borderColor;
-      ctxPreview.roundRect(margin + borderThickness/2, margin + borderThickness/2, imgW + padding * 2 + borderThickness - 1, imgH + padding * 2 + borderThickness - 1, borderRadius);
+      ctxPreview.roundRect(margin + borderThickness / 2, margin + borderThickness / 2, imgW + padding * 2 + borderThickness - 1, imgH + padding * 2 + borderThickness - 1, borderRadius);
       ctxPreview.stroke();
     }
   }
@@ -205,81 +245,116 @@
     a.remove();
   }
 
-  function reset() {
-    if (!image.src) return;
-    image = new Image();
-    image.onload = () => {
-      croppedCanvas.width = originalWidth;
-      croppedCanvas.height = originalHeight;
-      ctxCropped.drawImage(image, 0, 0);
-      detectAndCrop();
-      drawPreview();
-    };
-    image.src = URL.createObjectURL(fileInput.files![0]);
+  function setSolidBackground(color: string) {
+    background = {type: 'solid', color: color};
+    drawPreview()
   }
 </script>
 
 <style>
-  .app { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 1rem; max-width: 980px; margin: auto; }
-  .controls { display: flex; gap: 1rem; flex-wrap: wrap; }
-  .panel { background: #333; padding: 1rem; border-radius: 8px; flex: 1; }
-  canvas { border: 1px solid #ddd; max-width: 100%; height: auto; display: block; }
-  label { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
-  .color-swatch { display: inline-block; width: 24px; height: 24px; vertical-align: middle; margin-left: 0.5rem; border: 1px solid #ccc; }
+  .app {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    padding: 1rem;
+    max-width: 980px;
+    margin: auto;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .panel {
+    background: #eee;
+    padding: 1rem;
+    border-radius: 8px;
+    flex: 1;
+  }
+
+  canvas {
+    border: 1px solid #ddd;
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  #solid-backgrounds {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-auto-flow: column;
+    width: min-content;
+    gap: 5px;
+  }
+
+  #solid-backgrounds button {
+    background: var(--bg-color);
+    width: 20px;
+    height: 20px;
+    border: 1px solid #333;
+    border-radius: 10px;
+  }
+
+  #solid-backgrounds .transparent {
+    background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
+  }
+
+  #solid-backgrounds .custom {
+    background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f);
+  }
+
+  #solid-backgrounds button:hover {
+    border: 2px solid #111;
+  }
 </style>
 
 <div class="app">
-    <h2>Pro-Padding</h2>
+    <h1>Pro-Padding</h1>
     <div class="controls">
         <div class="panel">
-            <label>Load image</label>
-            <input bind:this={fileInput} type="file" accept="image/*" on:change={handleFile} />
+            <label for="file-input">Load image</label>
+            <input id="file-input" bind:this={fileInput} type="file" accept="image/*" on:change={handleFileEvent}/>
 
-            <label>Tolerance: {tolerance}</label>
-            <input type="range" min="0" max="100" step="1" bind:value={tolerance} on:change={() => { detectAndCrop(); drawPreview(); }} />
+            <label for="gradient-backgrounds">Gradient Backgrounds</label>
+            <div id="gradient-backgrounds">
 
-            <label>Padding: {padding}px</label>
-            <input type="range" min="0" max="200" bind:value={padding} on:input={drawPreview} />
+            </div>
 
-            <label>Border thickness: {borderThickness}px</label>
-            <input type="range" min="0" max="50" bind:value={borderThickness} on:input={drawPreview} />
+            <label for="solid-backgrounds">Solid Backgrounds</label>
+            <div id="solid-backgrounds">
+                {#each solidBackgrounds as solidBackground}
+                    <button style="--bg-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+                {/each}
+                <button class="transparent" style="--bg-color:#0000" on:click={() => setSolidBackground('#0000')} aria-label="color: #0000"></button>
+                <button class="custom" style="--bg-color:#000" on:click={() => setSolidBackground('#000')} aria-label="color: #000"></button>
+                <input id="solid-background-color-input" type="color"
+                       on:input={(e) => setSolidBackground(e.currentTarget.value)}
+                       on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
+            </div>
 
-            <label>Border color</label>
-            <input type="color" bind:value={borderColor} on:input={drawPreview} />
+            <label for="margin-input">Margin: {margin}px</label>
+            <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview}/>
 
-            <label>Border radius: {borderRadius}px</label>
-            <input type="range" min="0" max="200" bind:value={borderRadius} on:input={drawPreview} />
+            <label for="padding-input">Padding: {padding}px</label>
+            <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview}/>
 
-            <label>Margin: {margin}px</label>
-            <input type="range" min="0" max="200" bind:value={margin} on:input={drawPreview} />
-
-            <label>Background type</label>
-            <select bind:value={backgroundType} on:change={drawPreview}>
-                <option value="solid">Solid color</option>
-                <option value="linear-gradient">Linear gradient</option>
-                <option value="radial-gradient">Radial gradient</option>
-                <option value="blobs">Colorful blobs</option>
-            </select>
-
-            {#if backgroundType === 'solid'}
-                <label>Solid background color</label>
-                <input type="color" bind:value={marginBackground} on:input={drawPreview} />
-            {/if}
+            <label for="border-radius-input">Border radius: {borderRadius}px</label>
+            <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
 
             <div class="button-group">
-                <button on:click={drawPreview}>Refresh</button>
                 <button on:click={applyAndExport}>Export PNG</button>
-                <button on:click={reset}>Re-run detection</button>
             </div>
         </div>
 
         <div class="panel">
-            <label>Preview</label>
-            <canvas bind:this={previewCanvas}></canvas>
-            <div>Detected padding color:
-                <span class="color-swatch" style="background: rgba({paddingColor[0]}, {paddingColor[1]}, {paddingColor[2]}, {paddingColor[3]/255})"></span>
-                <span>rgba({paddingColor[0]}, {paddingColor[1]}, {paddingColor[2]}, {paddingColor[3]})</span>
-            </div>
+            <label for="preview-canvas">Preview</label>
+            <canvas id="preview-canvas" bind:this={previewCanvas}></canvas>
         </div>
     </div>
 </div>
