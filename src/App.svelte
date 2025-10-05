@@ -42,10 +42,10 @@
   // UI state
   let tolerance: number = 4;
   let padding: number = 20;
+  let margin: number = 40;
   let borderThickness: number = 0;
   let borderColor: string = '#000000';
   let borderRadius: number = 20;
-  let margin: number = 20;
   let background: Background = {type: 'solid', color: '#ff0000'};
 
   let croppedCanvas: HTMLCanvasElement;
@@ -161,6 +161,11 @@
     ctxCropped.putImageData(croppedData, 0, 0);
   }
 
+  function setSolidBackground(color: string) {
+    background = {type: 'solid', color: color};
+    drawPreview()
+  }
+
   function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
     switch (background.type) {
       case 'solid':
@@ -245,9 +250,16 @@
     a.remove();
   }
 
-  function setSolidBackground(color: string) {
-    background = {type: 'solid', color: color};
-    drawPreview()
+  async function copyToClipboard() {
+    try {
+      const blob = await new Promise<Blob | null>(resolve => previewCanvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+    } catch (err) {
+      console.error('Failed to copy image:', err);
+    }
   }
 </script>
 
@@ -293,24 +305,34 @@
     gap: 5px;
   }
 
-  #solid-backgrounds button {
+  #solid-backgrounds * {
     background: var(--bg-color);
     width: 20px;
     height: 20px;
     border: 1px solid #333;
     border-radius: 10px;
+    padding: 0;
+
+    &:hover {
+      border: 2px solid #111;
+    }
   }
 
   #solid-backgrounds .transparent {
     background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
   }
 
-  #solid-backgrounds .custom {
+  #solid-backgrounds input[type="color"] {
     background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f);
-  }
-
-  #solid-backgrounds button:hover {
-    border: 2px solid #111;
+    &::-webkit-color-swatch-wrapper {
+      display: none;
+    }
+    &::-webkit-color-swatch {
+      display: none;
+    }
+    &::-moz-color-swatch {
+      display: none;
+    }
   }
 </style>
 
@@ -332,7 +354,6 @@
                     <button style="--bg-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
                 {/each}
                 <button class="transparent" style="--bg-color:#0000" on:click={() => setSolidBackground('#0000')} aria-label="color: #0000"></button>
-                <button class="custom" style="--bg-color:#000" on:click={() => setSolidBackground('#000')} aria-label="color: #000"></button>
                 <input id="solid-background-color-input" type="color"
                        on:input={(e) => setSolidBackground(e.currentTarget.value)}
                        on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
@@ -348,7 +369,8 @@
             <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
 
             <div class="button-group">
-                <button on:click={applyAndExport}>Export PNG</button>
+                <button on:click={applyAndExport}>Download</button>
+                <button on:click={copyToClipboard}>Copy</button>
             </div>
         </div>
 
