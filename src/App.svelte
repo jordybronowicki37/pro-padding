@@ -6,10 +6,10 @@
     color: string
   } | {
     type: 'gradient',
-    option: string
+    style: string
   } | {
     type: 'image',
-    file: string
+    image: HTMLImageElement
   }
 
   const solidBackgrounds = [
@@ -31,8 +31,8 @@
     '#ceacf8'
   ]
 
-  let fileInput: HTMLInputElement;
-  let previewCanvas: HTMLCanvasElement;
+  let previewCanvasElement: HTMLCanvasElement;
+  let customImageElement: HTMLInputElement;
   let ctxPreview: CanvasRenderingContext2D;
 
   let image = new Image();
@@ -40,7 +40,7 @@
   let originalHeight = 0;
 
   // UI state
-  let tolerance: number = 4;
+  const tolerance: number = 4;
   let padding: number = 20;
   let margin: number = 40;
   let borderThickness: number = 0;
@@ -55,7 +55,7 @@
   let paddingColor: [number, number, number, number] = [255, 255, 255, 255];
 
   onMount(() => {
-    ctxPreview = previewCanvas.getContext('2d')!;
+    ctxPreview = previewCanvasElement.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
     ctxCropped = croppedCanvas.getContext('2d')!;
     // TODO: for testing purposes
@@ -163,22 +163,114 @@
 
   function setSolidBackground(color: string) {
     background = {type: 'solid', color: color};
-    drawPreview()
+    drawPreview();
   }
 
-  function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  function setGradientBackground(style: string) {
+    background = {type: 'gradient', style};
+    drawPreview();
+  }
+
+  function setImageBackground(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const image = new Image();
+    image.onload = () => {
+      background = {type: "image", image};
+      drawPreview();
+    };
+    image.src = URL.createObjectURL(file);
+  }
+
+  function getRotatedGradient(angle: number): CanvasGradient {
+    angle += 90
+    const w = previewCanvasElement.width
+    const h = previewCanvasElement.height
+    const rad = (angle * Math.PI) / 180;
+    const x0 = w / 2 + Math.cos(rad) * w;
+    const y0 = h / 2 + Math.sin(rad) * h;
+    const x1 = w / 2 - Math.cos(rad) * w;
+    const y1 = h / 2 - Math.sin(rad) * h;
+    return ctxPreview.createLinearGradient(x0, y0, x1, y1);
+  }
+
+  function drawGradientBackground(style: string) {
+    const w = previewCanvasElement.width
+    const h = previewCanvasElement.height
+    let gradient: CanvasGradient;
+
+    switch (style) {
+      case 'pink':
+        gradient = getRotatedGradient(55)
+        gradient.addColorStop(0, '#f68375');
+        gradient.addColorStop(0.5, '#e95a9f');
+        gradient.addColorStop(1, '#2f225e');
+        break
+      case 'purple':
+        gradient = getRotatedGradient(130)
+        gradient.addColorStop(0, '#192357');
+        gradient.addColorStop(1, '#b372cd');
+        break
+      case 'night':
+        gradient = getRotatedGradient(130)
+        gradient.addColorStop(0, '#010b46');
+        gradient.addColorStop(1, '#1f85af');
+        break
+      case 'ocean':
+        gradient = getRotatedGradient(35)
+        gradient.addColorStop(0, '#4fbbbe');
+        gradient.addColorStop(1, '#8fcd9f');
+        break
+      case 'red':
+        gradient = getRotatedGradient(65)
+        gradient.addColorStop(0, '#fb9857');
+        gradient.addColorStop(1, '#ee7496');
+        break
+      case 'bright-pink':
+      default:
+        gradient = getRotatedGradient(45)
+        gradient.addColorStop(0, '#f9acc3');
+        gradient.addColorStop(1, '#d67b99');
+    }
+    ctxPreview.fillStyle = gradient;
+    ctxPreview.fillRect(0, 0, w, h);
+  }
+
+  function drawBackground() {
+    const ctx = ctxPreview
+    const canvas = previewCanvasElement
+    const w = canvas.width
+    const h = canvas.height
     switch (background.type) {
       case 'solid':
         ctx.fillStyle = background.color;
         ctx.fillRect(0, 0, w, h);
         break;
-      // case 'linear-gradient':
-      //   const gradient = ctx.createLinearGradient(0, 0, w, h);
-      //   gradient.addColorStop(0, '#ff9a9e');
-      //   gradient.addColorStop(1, '#fad0c4');
-      //   ctx.fillStyle = gradient;
-      //   ctx.fillRect(0, 0, w, h);
-      //   break;
+      case "gradient":
+        drawGradientBackground(background.style)
+        break;
+      case 'image':
+        const img = background.image
+        const canvasRatio = canvas.width / canvas.height;
+        const imgRatio = img.width / img.height;
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        if (imgRatio > canvasRatio) { // Image is wider — fit height, crop sides
+          drawHeight = canvas.height;
+          drawWidth = img.width * (canvas.height / img.height);
+          offsetX = (canvas.width - drawWidth) / 2;
+          offsetY = 0;
+        } else { // Image is taller — fit width, crop top/bottom
+          drawWidth = canvas.width;
+          drawHeight = img.height * (canvas.width / img.width);
+          offsetX = 0;
+          offsetY = (canvas.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        break;
+        // kept as examples for different types of backgrounds
       // case 'radial-gradient':
       //   const radial = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w/2);
       //   radial.addColorStop(0, '#a1c4fd');
@@ -213,11 +305,11 @@
     const outW = imgW + padding * 2 + borderThickness * 2 + margin * 2;
     const outH = imgH + padding * 2 + borderThickness * 2 + margin * 2;
 
-    previewCanvas.width = outW;
-    previewCanvas.height = outH;
+    previewCanvasElement.width = outW;
+    previewCanvasElement.height = outH;
 
     ctxPreview.clearRect(0, 0, outW, outH);
-    drawBackground(ctxPreview, outW, outH);
+    drawBackground();
 
     // Draw padding area with border-radius
     ctxPreview.save();
@@ -241,7 +333,7 @@
 
   function applyAndExport() {
     drawPreview();
-    const dataUrl = previewCanvas.toDataURL('image/png');
+    const dataUrl = previewCanvasElement.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = 'autocrop.png';
@@ -252,7 +344,7 @@
 
   async function copyToClipboard() {
     try {
-      const blob = await new Promise<Blob | null>(resolve => previewCanvas.toBlob(resolve, 'image/png'));
+      const blob = await new Promise<Blob | null>(resolve => previewCanvasElement.toBlob(resolve, 'image/png'));
       if (!blob) return;
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob })
@@ -297,6 +389,57 @@
     margin-bottom: 0.25rem;
   }
 
+  #gradient-backgrounds {
+    display: flex;
+    gap: 5px;
+    width: min-content;
+  }
+
+  #gradient-backgrounds>* {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 0;
+
+    &:hover {
+      border: 2px solid #111;
+    }
+  }
+
+  #gradient-backgrounds .pink {
+    background: linear-gradient(55deg, #f68375, #e95a9f 50%, #2f225e);
+  }
+  #gradient-backgrounds .purple {
+    background: linear-gradient(130deg, #192357, #b372cd);
+  }
+  #gradient-backgrounds .night {
+    background: linear-gradient(130deg, #010b46, #1f85af);
+  }
+  #gradient-backgrounds .ocean {
+    background: linear-gradient(35deg, #4fbbbe, #8fcd9f);
+  }
+  #gradient-backgrounds .red {
+    background: linear-gradient(65deg, #fb9857, #ee7496);
+  }
+  #gradient-backgrounds .bright-pink {
+    background: linear-gradient(135deg, #f9acc3, #d67b99);
+  }
+  #gradient-backgrounds .custom-image {
+    border: 1px dashed #333;
+    box-sizing: border-box;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: 70% auto;
+
+    &:hover {
+      border: 2px solid #111;
+    }
+    & input {
+      display: none;
+    }
+  }
+
   #solid-backgrounds {
     display: grid;
     grid-template-rows: 1fr 1fr;
@@ -305,7 +448,7 @@
     gap: 5px;
   }
 
-  #solid-backgrounds * {
+  #solid-backgrounds>* {
     background: var(--bg-color);
     width: 20px;
     height: 20px;
@@ -341,11 +484,18 @@
     <div class="controls">
         <div class="panel">
             <label for="file-input">Load image</label>
-            <input id="file-input" bind:this={fileInput} type="file" accept="image/*" on:change={handleFileEvent}/>
+            <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent}/>
 
             <label for="gradient-backgrounds">Gradient Backgrounds</label>
             <div id="gradient-backgrounds">
-
+                <button class="pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+                <button class="purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+                <button class="night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+                <button class="ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+                <button class="red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+                <button class="bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+                <button class="custom-image" style="background-image: url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
+                <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground}>
             </div>
 
             <label for="solid-backgrounds">Solid Backgrounds</label>
@@ -359,13 +509,13 @@
                        on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
             </div>
 
-            <label for="margin-input">Margin: {margin}px</label>
+            <label for="margin-input">Margin</label>
             <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview}/>
 
-            <label for="padding-input">Padding: {padding}px</label>
+            <label for="padding-input">Padding</label>
             <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview}/>
 
-            <label for="border-radius-input">Border radius: {borderRadius}px</label>
+            <label for="border-radius-input">Corner</label>
             <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
 
             <div class="button-group">
@@ -376,7 +526,7 @@
 
         <div class="panel">
             <label for="preview-canvas">Preview</label>
-            <canvas id="preview-canvas" bind:this={previewCanvas}></canvas>
+            <canvas id="preview-canvas" bind:this={previewCanvasElement}></canvas>
         </div>
     </div>
 </div>
