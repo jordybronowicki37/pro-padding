@@ -357,128 +357,17 @@
 </script>
 
 <style>
-  .app {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-
-  h1 {
-    font-size: xx-large;
-    font-weight: bold;
-  }
-
-  .panel {
-    background: #eee;
-    padding: 1rem;
-    border-radius: 0 8px 8px 0;
-  }
-
-  .canvas-panel {
-    margin: 3rem;
-    flex: 1;
-    place-items: center;
-  }
-
-  .canvas {
-    width: 70%;
-    position: relative;
-
-    & canvas {
-      border: 1px solid #ddd;
-      width: 100%;
-    }
-    & label {
-      position: absolute;
-      left: 0;
-      padding: 5px;
-      font-weight: bold;
-      user-select: none;
-    }
-  }
-
-  label {
-    display: block;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-  }
-
-  #gradient-backgrounds {
-    display: flex;
-    gap: 5px;
-    width: min-content;
-  }
-
   #gradient-backgrounds>* {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #333;
-    border-radius: 10px;
     corner-shape: squircle;
-    padding: 0;
-
-    &:hover {
-      border: 2px solid #111;
-    }
   }
 
-  #gradient-backgrounds .pink {
-    background: linear-gradient(55deg, #f68375, #e95a9f 50%, #2f225e);
-  }
-  #gradient-backgrounds .purple {
-    background: linear-gradient(130deg, #192357, #b372cd);
-  }
-  #gradient-backgrounds .night {
-    background: linear-gradient(130deg, #010b46, #1f85af);
-  }
-  #gradient-backgrounds .ocean {
-    background: linear-gradient(35deg, #4fbbbe, #8fcd9f);
-  }
-  #gradient-backgrounds .red {
-    background: linear-gradient(65deg, #fb9857, #ee7496);
-  }
-  #gradient-backgrounds .bright-pink {
-    background: linear-gradient(135deg, #f9acc3, #d67b99);
-  }
-  #gradient-backgrounds .custom-image {
-    border: 1px dashed #333;
-    box-sizing: border-box;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-    background-size: 70% auto;
-
-    &:hover {
-      border: 2px solid #111;
-    }
-  }
-
-  #solid-backgrounds {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    grid-auto-flow: column;
-    width: min-content;
-    gap: 5px;
-  }
-
-  #solid-backgrounds>* {
-    background: var(--bg-color);
-    width: 20px;
-    height: 20px;
-    border: 1px solid #333;
-    border-radius: 10px;
-    padding: 0;
-
-    &:hover {
-      border: 2px solid #111;
-    }
-  }
-
-  #solid-backgrounds .transparent {
+  #solid-background-transparent {
     background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
   }
 
-  #solid-backgrounds input[type="color"] {
+  #solid-background-color-input {
     background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f);
+
     &::-webkit-color-swatch-wrapper {
       display: none;
     }
@@ -491,54 +380,56 @@
   }
 </style>
 
-<div class="app">
-    <div class="panel">
-        <h1>Pro-Padding</h1>
-        <label for="file-input">Load image</label>
-        <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent}/>
+<div class="h-screen flex items-center">
+    <div class="bg-gray-200 p-4 rounded-r-lg">
+        <h1 class="text-3xl font-bold mb-4">Pro-Padding</h1>
 
-        <label for="gradient-backgrounds">Gradient Backgrounds</label>
-        <div id="gradient-backgrounds">
-            <button class="pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-            <button class="purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-            <button class="night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-            <button class="ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-            <button class="red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-            <button class="bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
-            <button class="custom-image" style="background-image: url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
-            <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground}>
+        <label for="file-input" class="block text-sm mb-1">Load image</label>
+        <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent} />
+
+        <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1">Gradient Backgrounds</label>
+        <div id="gradient-backgrounds" class="flex gap-1 w-min">
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-55 from-[#f68375] via-[#e95a9f] to-[#2f225e]" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-130 from-[#192357] to-[#b372cd]" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-130 from-[#010b46] to-[#1f85af]" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-35 from-[#4fbbbe] to-[#8fcd9f]" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-65 from-[#fb9857] to-[#ee7496]" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-135 from-[#f9acc3] to-[#d67b99]" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+
+            <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-contain" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
+            <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground} />
         </div>
 
-        <label for="solid-backgrounds">Solid Backgrounds</label>
-        <div id="solid-backgrounds">
+        <label class="block text-sm mt-4 mb-1">Solid Backgrounds</label>
+        <div class="grid grid-rows-2 grid-flow-col gap-1 w-min">
             {#each solidBackgrounds as solidBackground}
-                <button style="--bg-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+                <button class="w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
             {/each}
-            <button class="transparent" style="--bg-color:#0000" on:click={() => setSolidBackground('#0000')} aria-label="color: #0000"></button>
-            <input id="solid-background-color-input" type="color"
-                   on:input={(e) => setSolidBackground(e.currentTarget.value)}
-                   on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
+
+            <button id="solid-background-transparent" class="w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
+
+            <input id="solid-background-color-input" type="color" class="w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
         </div>
 
-        <label for="margin-input">Margin</label>
-        <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview}/>
+        <label for="margin-input" class="block text-sm mt-4 mb-1">Margin</label>
+        <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview} />
 
-        <label for="padding-input">Padding</label>
-        <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview}/>
+        <label for="padding-input" class="block text-sm mt-4 mb-1">Padding</label>
+        <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview} />
 
-        <label for="border-radius-input">Corner</label>
-        <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
+        <label for="border-radius-input" class="block text-sm mt-4 mb-1">Corner</label>
+        <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview} />
 
-        <div class="button-group">
-            <button on:click={applyAndExport}>Download</button>
-            <button on:click={copyToClipboard}>Copy</button>
+        <div class="flex gap-2 mt-4">
+            <button class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400" on:click={applyAndExport}>Download</button>
+            <button class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400" on:click={copyToClipboard}>Copy</button>
         </div>
     </div>
 
-    <div class="canvas-panel">
-        <div class="canvas">
-            <label for="preview-canvas">Preview</label>
-            <canvas id="preview-canvas" bind:this={previewCanvasElement}></canvas>
+    <div class="m-12 flex-1 grid place-items-center">
+        <div class="w-[70%] relative">
+            <label for="preview-canvas" class="absolute left-0 p-1 font-bold select-none">Preview</label>
+            <canvas id="preview-canvas" bind:this={previewCanvasElement} class="border border-gray-300 w-full"></canvas>
         </div>
     </div>
 </div>
