@@ -42,11 +42,14 @@
 
   // UI state
   const tolerance: number = 4;
-  let padding: number = 20;
-  let margin: number = 40;
+  let paddingPercentage: number = 10;
+  let padding: number = 0;
+  let marginPercentage: number = 10;
+  let margin: number = 0;
   let borderThickness: number = 0;
   let borderColor: string = '#000000';
-  let borderRadius: number = 20;
+  let borderRadiusPercentage: number = 10;
+  let borderRadius: number = 0;
   let background: Background = {type: 'solid', color: '#ff0000'};
 
   let croppedCanvas: HTMLCanvasElement;
@@ -300,8 +303,13 @@
 
   function drawPreview() {
     if (!croppedRect) return;
+
     const imgW = croppedCanvas.width;
     const imgH = croppedCanvas.height;
+
+    padding = imgW * (paddingPercentage / 100)
+    margin = imgW * (marginPercentage / 100)
+    borderRadius = imgW * (borderRadiusPercentage / 100)
 
     const outW = imgW + padding * 2 + borderThickness * 2 + margin * 2;
     const outH = imgH + padding * 2 + borderThickness * 2 + margin * 2;
@@ -414,13 +422,13 @@
         </div>
 
         <label for="margin-input" class="block text-sm mt-4 mb-1">Margin</label>
-        <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview} />
+        <input id="margin-input" type="range" step="0.1" min="0" max="20" bind:value={marginPercentage} on:input={drawPreview} />
 
         <label for="padding-input" class="block text-sm mt-4 mb-1">Padding</label>
-        <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview} />
+        <input id="padding-input" type="range" step="0.1" min="0" max="20" bind:value={paddingPercentage} on:input={drawPreview} />
 
         <label for="border-radius-input" class="block text-sm mt-4 mb-1">Corner</label>
-        <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview} />
+        <input id="border-radius-input" type="range" step="0.1" min="0" max="20" bind:value={borderRadiusPercentage} on:input={drawPreview} />
 
         <div class="flex gap-2 mt-4">
             <button class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400" on:click={applyAndExport}>Download</button>
