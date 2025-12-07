@@ -32,10 +32,11 @@
   ]
 
   let previewCanvasElement: HTMLCanvasElement;
-  let customImageElement: HTMLInputElement;
+  let imageElement: HTMLInputElement;
+  let customBackgroundImageElement: HTMLInputElement;
   let ctxPreview: CanvasRenderingContext2D;
 
-  let image = new Image();
+  let image: HTMLImageElement;
   let originalWidth = 0;
   let originalHeight = 0;
 
@@ -357,7 +358,7 @@
 </script>
 
 <style>
-  #gradient-backgrounds>* {
+  #main-image-input, #gradient-backgrounds>* {
     corner-shape: squircle;
   }
 
@@ -385,7 +386,8 @@
         <h1 class="text-3xl font-bold mb-4">Pro-Padding</h1>
 
         <label for="file-input" class="block text-sm mb-1">Load image</label>
-        <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent} />
+        <button id="main-image-input" class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{image !== null ? image?.src : '/image-preview.png'}')" on:click={() => imageElement.click()} aria-label="Image input"></button>
+        <input hidden id="file-input" type="file" accept="image/*" bind:this={imageElement} on:change={handleFileEvent} />
 
         <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1">Gradient Backgrounds</label>
         <div id="gradient-backgrounds" class="flex gap-1 w-min">
@@ -396,12 +398,12 @@
             <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-65 from-[#fb9857] to-[#ee7496]" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
             <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-135 from-[#f9acc3] to-[#d67b99]" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
 
-            <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-contain" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
-            <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground} />
+            <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
+            <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
         </div>
 
-        <label class="block text-sm mt-4 mb-1">Solid Backgrounds</label>
-        <div class="grid grid-rows-2 grid-flow-col gap-1 w-min">
+        <label for="solid-backgrounds" class="block text-sm mt-4 mb-1">Solid Backgrounds</label>
+        <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
             {#each solidBackgrounds as solidBackground}
                 <button class="w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
             {/each}
