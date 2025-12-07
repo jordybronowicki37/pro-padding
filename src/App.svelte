@@ -83,7 +83,7 @@
     };
     // TODO: for testing purposes
     if (f === null) {
-        image.src = '../public/test.png';
+        image.src = '../test.png';
     } else {
         image.src = URL.createObjectURL(f);
     }
@@ -314,6 +314,7 @@
     // Draw padding area with border-radius
     ctxPreview.save();
     ctxPreview.beginPath();
+    // TODO change to squircle
     ctxPreview.roundRect(margin + borderThickness, margin + borderThickness, imgW + padding * 2, imgH + padding * 2, borderRadius);
     ctxPreview.clip();
     ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3] / 255})`;
@@ -357,30 +358,43 @@
 
 <style>
   .app {
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-    padding: 1rem;
-    max-width: 980px;
-    margin: auto;
+    height: 100vh;
+    display: flex;
+    align-items: center;
   }
 
-  .controls {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+  h1 {
+    font-size: xx-large;
+    font-weight: bold;
   }
 
   .panel {
     background: #eee;
     padding: 1rem;
-    border-radius: 8px;
-    flex: 1;
+    border-radius: 0 8px 8px 0;
   }
 
-  canvas {
-    border: 1px solid #ddd;
-    max-width: 100%;
-    height: auto;
-    display: block;
+  .canvas-panel {
+    margin: 3rem;
+    flex: 1;
+    place-items: center;
+  }
+
+  .canvas {
+    width: 70%;
+    position: relative;
+
+    & canvas {
+      border: 1px solid #ddd;
+      width: 100%;
+    }
+    & label {
+      position: absolute;
+      left: 0;
+      padding: 5px;
+      font-weight: bold;
+      user-select: none;
+    }
   }
 
   label {
@@ -399,7 +413,8 @@
     width: 30px;
     height: 30px;
     border: 1px solid #333;
-    border-radius: 3px;
+    border-radius: 10px;
+    corner-shape: squircle;
     padding: 0;
 
     &:hover {
@@ -434,9 +449,6 @@
 
     &:hover {
       border: 2px solid #111;
-    }
-    & input {
-      display: none;
     }
   }
 
@@ -480,51 +492,51 @@
 </style>
 
 <div class="app">
-    <h1>Pro-Padding</h1>
-    <div class="controls">
-        <div class="panel">
-            <label for="file-input">Load image</label>
-            <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent}/>
+    <div class="panel">
+        <h1>Pro-Padding</h1>
+        <label for="file-input">Load image</label>
+        <input id="file-input" type="file" accept="image/*" on:change={handleFileEvent}/>
 
-            <label for="gradient-backgrounds">Gradient Backgrounds</label>
-            <div id="gradient-backgrounds">
-                <button class="pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-                <button class="purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-                <button class="night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-                <button class="ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-                <button class="red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-                <button class="bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
-                <button class="custom-image" style="background-image: url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
-                <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground}>
-            </div>
-
-            <label for="solid-backgrounds">Solid Backgrounds</label>
-            <div id="solid-backgrounds">
-                {#each solidBackgrounds as solidBackground}
-                    <button style="--bg-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
-                {/each}
-                <button class="transparent" style="--bg-color:#0000" on:click={() => setSolidBackground('#0000')} aria-label="color: #0000"></button>
-                <input id="solid-background-color-input" type="color"
-                       on:input={(e) => setSolidBackground(e.currentTarget.value)}
-                       on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
-            </div>
-
-            <label for="margin-input">Margin</label>
-            <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview}/>
-
-            <label for="padding-input">Padding</label>
-            <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview}/>
-
-            <label for="border-radius-input">Corner</label>
-            <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
-
-            <div class="button-group">
-                <button on:click={applyAndExport}>Download</button>
-                <button on:click={copyToClipboard}>Copy</button>
-            </div>
+        <label for="gradient-backgrounds">Gradient Backgrounds</label>
+        <div id="gradient-backgrounds">
+            <button class="pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+            <button class="purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+            <button class="night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+            <button class="ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+            <button class="red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+            <button class="bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+            <button class="custom-image" style="background-image: url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customImageElement.click()} aria-label="Custom background image"></button>
+            <input hidden type="file" accept="image/*" bind:this={customImageElement} on:change={setImageBackground}>
         </div>
 
-        <div class="panel">
+        <label for="solid-backgrounds">Solid Backgrounds</label>
+        <div id="solid-backgrounds">
+            {#each solidBackgrounds as solidBackground}
+                <button style="--bg-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+            {/each}
+            <button class="transparent" style="--bg-color:#0000" on:click={() => setSolidBackground('#0000')} aria-label="color: #0000"></button>
+            <input id="solid-background-color-input" type="color"
+                   on:input={(e) => setSolidBackground(e.currentTarget.value)}
+                   on:click={(e) => setSolidBackground(e.currentTarget.value)}/>
+        </div>
+
+        <label for="margin-input">Margin</label>
+        <input id="margin-input" type="range" min="0" max="200" bind:value={margin} on:input={drawPreview}/>
+
+        <label for="padding-input">Padding</label>
+        <input id="padding-input" type="range" min="0" max="100" bind:value={padding} on:input={drawPreview}/>
+
+        <label for="border-radius-input">Corner</label>
+        <input id="border-radius-input" type="range" min="0" max="60" bind:value={borderRadius} on:input={drawPreview}/>
+
+        <div class="button-group">
+            <button on:click={applyAndExport}>Download</button>
+            <button on:click={copyToClipboard}>Copy</button>
+        </div>
+    </div>
+
+    <div class="canvas-panel">
+        <div class="canvas">
             <label for="preview-canvas">Preview</label>
             <canvas id="preview-canvas" bind:this={previewCanvasElement}></canvas>
         </div>
