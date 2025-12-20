@@ -61,7 +61,7 @@
   onMount(() => {
     ctxPreview = previewCanvasElement.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
-    ctxCropped = croppedCanvas.getContext('2d')!;
+    ctxCropped = croppedCanvas.getContext('2d', { willReadFrequently: true })!;
     // TODO: for testing purposes
     handleFile(null)
   });
@@ -379,15 +379,36 @@
     }
   }
 
-  function applyAndExport() {
+  async function applyAndExport() {
     drawPreview();
-    const dataUrl = previewCanvasElement.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = 'autocrop.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+
+    if ('showSaveFilePicker' in window) {
+      const blob = await new Promise<Blob>((resolve) =>
+        previewCanvasElement.toBlob((b) => resolve(b!), 'image/png')
+      );
+      // @ts-ignore
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'pro-padding-image.png',
+        types: [
+          {
+            description: 'PNG Image',
+            accept: { 'image/png': ['.png'] }
+          }
+        ]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+    } else { // Fallback for browsers that do not support window.showSaveFilePicker
+      const dataUrl = previewCanvasElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'pro-padding-image.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(dataUrl)
+    }
   }
 
   async function copyToClipboard() {
