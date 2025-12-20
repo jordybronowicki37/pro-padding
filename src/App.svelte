@@ -467,49 +467,51 @@
 </style>
 
 <div class="h-screen flex items-center bg-gray-950">
-    <div class="bg-slate-800 p-4 border border-slate-500 border-l-0 rounded-r-lg">
-        <h1 class="text-3xl font-bold mb-4">Pro-Padding</h1>
+    <div class="bg-slate-800 border border-slate-500 border-l-0 rounded-r-lg">
+        <div class="p-4">
+            <h1 class="text-3xl font-bold mb-4 text-white">Pro-Padding</h1>
 
-        <label for="file-input" class="block text-sm mb-1">Load image</label>
-        <button id="main-image-input" class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{image !== null ? image?.src : '/image-preview.png'}')" on:click={() => imageElement.click()} aria-label="Image input"></button>
-        <input hidden id="file-input" type="file" accept="image/*" bind:this={imageElement} on:change={handleFileEvent} />
+            <label for="file-input" class="block text-sm mb-1 text-slate-100">Load image</label>
+            <button id="main-image-input" class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{image !== null ? image?.src : '/image-preview.png'}')" on:click={() => imageElement.click()} aria-label="Image input"></button>
+            <input hidden id="file-input" type="file" accept="image/*" bind:this={imageElement} on:change={handleFileEvent} />
 
-        <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1">Gradient Backgrounds</label>
-        <div id="gradient-backgrounds" class="flex gap-1 w-min">
-            <button class="w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+            <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Gradient Backgrounds</label>
+            <div id="gradient-backgrounds" class="flex gap-1 w-min">
+                <button class="w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+                <button class="w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+                <button class="w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+                <button class="w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+                <button class="w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+                <button class="w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
 
-            <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
-            <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
+                <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
+                <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
+            </div>
+
+            <label for="solid-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Solid Backgrounds</label>
+            <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
+                {#each solidBackgrounds as solidBackground}
+                    <button class="w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+                {/each}
+
+                <button id="solid-background-transparent" class="w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
+
+                <input id="solid-background-color-input" type="color" class="w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
+            </div>
+
+            <label for="margin-input" class="block text-sm mt-4 mb-1 text-slate-100">Margin</label>
+            <input id="margin-input" type="range" step="0.1" min="0" max="20" bind:value={marginPercentage} on:input={drawPreview} />
+
+            <label for="padding-input" class="block text-sm mt-4 mb-1 text-slate-100">Padding</label>
+            <input id="padding-input" type="range" step="0.1" min="0" max="20" bind:value={paddingPercentage} on:input={drawPreview} />
+
+            <label for="border-radius-input" class="block text-sm mt-4 mb-1 text-slate-100">Corner</label>
+            <input id="border-radius-input" type="range" step="0.1" min="0" max="20" bind:value={borderRadiusPercentage} on:input={drawPreview} />
         </div>
 
-        <label for="solid-backgrounds" class="block text-sm mt-4 mb-1">Solid Backgrounds</label>
-        <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
-            {#each solidBackgrounds as solidBackground}
-                <button class="w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
-            {/each}
-
-            <button id="solid-background-transparent" class="w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
-
-            <input id="solid-background-color-input" type="color" class="w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
-        </div>
-
-        <label for="margin-input" class="block text-sm mt-4 mb-1">Margin</label>
-        <input id="margin-input" type="range" step="0.1" min="0" max="20" bind:value={marginPercentage} on:input={drawPreview} />
-
-        <label for="padding-input" class="block text-sm mt-4 mb-1">Padding</label>
-        <input id="padding-input" type="range" step="0.1" min="0" max="20" bind:value={paddingPercentage} on:input={drawPreview} />
-
-        <label for="border-radius-input" class="block text-sm mt-4 mb-1">Corner</label>
-        <input id="border-radius-input" type="range" step="0.1" min="0" max="20" bind:value={borderRadiusPercentage} on:input={drawPreview} />
-
-        <div class="flex gap-2 mt-4">
-            <button class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400" on:click={applyAndExport}>Download</button>
-            <button class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400" on:click={copyToClipboard}>Copy</button>
+        <div class="grid grid-cols-2 mt-2 border-t border-t-slate-500">
+            <button class="p-4 border-r border-r-slate-500 hover:bg-slate-700 text-slate-100" on:click={applyAndExport}>Download</button>
+            <button class="p-4 hover:bg-slate-700 text-slate-100" on:click={copyToClipboard}>Copy</button>
         </div>
     </div>
 
