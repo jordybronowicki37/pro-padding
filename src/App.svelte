@@ -301,43 +301,81 @@
     }
   }
 
+  function squircleRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    const SQUIRCLE = 0.25;
+    const c = r * SQUIRCLE;
+
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+
+    ctx.lineTo(x + w - r, y);
+    ctx.bezierCurveTo(x + w - c, y, x + w, y + c, x + w, y + r);
+
+    ctx.lineTo(x + w, y + h - r);
+    ctx.bezierCurveTo(x + w, y + h - c, x + w - c, y + h, x + w - r, y + h);
+
+    ctx.lineTo(x + r, y + h);
+    ctx.bezierCurveTo(x + c, y + h, x, y + h - c, x, y + h - r);
+
+    ctx.lineTo(x, y + r);
+    ctx.bezierCurveTo(x, y + c, x + c, y, x + r, y);
+
+    ctx.closePath();
+  }
+
   function drawPreview() {
     if (!croppedRect) return;
 
+    // Set variables and constants
     const imgW = croppedCanvas.width;
     const imgH = croppedCanvas.height;
-
     padding = imgW * (paddingPercentage / 100)
     margin = imgW * (marginPercentage / 100)
     borderRadius = imgW * (borderRadiusPercentage / 100)
+    const newOutputW = imgW + padding * 2 + borderThickness * 2 + margin * 2;
+    const newOutputH = imgH + padding * 2 + borderThickness * 2 + margin * 2;
+    const totalMargin = margin + borderThickness;
+    const boxW = imgW + padding * 2;
+    const boxH = imgH + padding * 2;
 
-    const outW = imgW + padding * 2 + borderThickness * 2 + margin * 2;
-    const outH = imgH + padding * 2 + borderThickness * 2 + margin * 2;
+    // Setup canvas
+    previewCanvasElement.width = newOutputW;
+    previewCanvasElement.height = newOutputH;
 
-    previewCanvasElement.width = outW;
-    previewCanvasElement.height = outH;
-
-    ctxPreview.clearRect(0, 0, outW, outH);
+    // Draw background
+    ctxPreview.clearRect(0, 0, newOutputW, newOutputH);
     drawBackground();
 
-    // Draw padding area with border-radius
+    // Draw shadow shape
     ctxPreview.save();
-    ctxPreview.beginPath();
-    // TODO change to squircle
-    ctxPreview.roundRect(margin + borderThickness, margin + borderThickness, imgW + padding * 2, imgH + padding * 2, borderRadius);
-    ctxPreview.clip();
-    ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3] / 255})`;
-    ctxPreview.fillRect(margin + borderThickness, margin + borderThickness, imgW + padding * 2, imgH + padding * 2);
-
-    // Draw image inside padding
-    ctxPreview.drawImage(croppedCanvas, margin + borderThickness + padding, margin + borderThickness + padding, imgW, imgH);
+    ctxPreview.shadowColor = 'rgba(0,0,0,0.5)';
+    ctxPreview.shadowBlur = 20;
+    ctxPreview.shadowOffsetX = imgW * 0.02;
+    ctxPreview.shadowOffsetY = imgH * 0.05;
+    squircleRect(ctxPreview, totalMargin, totalMargin, boxW, boxH, borderRadius);
+    ctxPreview.fillStyle = '#000';
+    ctxPreview.fill();
     ctxPreview.restore();
 
+    // Draw padding box
+    ctxPreview.save();
+    squircleRect(ctxPreview, totalMargin, totalMargin, boxW, boxH, borderRadius);
+    ctxPreview.clip();
+    ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3] / 255})`;
+    ctxPreview.fillRect(totalMargin, totalMargin, boxW, boxH);
+    ctxPreview.restore();
+
+    // Draw image
+    ctxPreview.drawImage(croppedCanvas, totalMargin + padding, totalMargin + padding, imgW, imgH);
+    ctxPreview.restore();
+
+    // Draw border around image
     if (borderThickness > 0) {
       ctxPreview.lineWidth = borderThickness;
       ctxPreview.strokeStyle = borderColor;
-      ctxPreview.roundRect(margin + borderThickness / 2, margin + borderThickness / 2, imgW + padding * 2 + borderThickness - 1, imgH + padding * 2 + borderThickness - 1, borderRadius);
+      squircleRect(ctxPreview, totalMargin, totalMargin, boxW, boxH, borderRadius);
       ctxPreview.stroke();
+      ctxPreview.restore();
     }
   }
 
@@ -389,8 +427,8 @@
   }
 </style>
 
-<div class="h-screen flex items-center">
-    <div class="bg-gray-200 p-4 rounded-r-lg">
+<div class="h-screen flex items-center bg-gray-950">
+    <div class="bg-slate-800 p-4 border border-slate-500 border-l-0 rounded-r-lg">
         <h1 class="text-3xl font-bold mb-4">Pro-Padding</h1>
 
         <label for="file-input" class="block text-sm mb-1">Load image</label>
@@ -439,7 +477,7 @@
     <div class="m-12 flex-1 grid place-items-center">
         <div class="w-[70%] relative">
             <label for="preview-canvas" class="absolute left-0 p-1 font-bold select-none">Preview</label>
-            <canvas id="preview-canvas" bind:this={previewCanvasElement} class="border border-gray-300 w-full"></canvas>
+            <canvas id="preview-canvas" bind:this={previewCanvasElement} class="border border-slate-600 w-full"></canvas>
         </div>
     </div>
 </div>
