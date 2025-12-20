@@ -425,6 +425,24 @@
       display: none;
     }
   }
+  #gradient-backgrounds .pink {
+    background: linear-gradient(55deg, #f68375, #e95a9f 50%, #2f225e) !important;
+  }
+  #gradient-backgrounds .purple {
+    background: linear-gradient(130deg, #192357, #b372cd) !important;
+  }
+  #gradient-backgrounds .night {
+    background: linear-gradient(130deg, #010b46, #1f85af) !important;
+  }
+  #gradient-backgrounds .ocean {
+    background: linear-gradient(35deg, #4fbbbe, #8fcd9f) !important;
+  }
+  #gradient-backgrounds .red {
+    background: linear-gradient(65deg, #fb9857, #ee7496) !important;
+  }
+  #gradient-backgrounds .bright-pink {
+    background: linear-gradient(135deg, #f9acc3, #d67b99) !important;
+  }
 </style>
 
 <div class="h-screen flex items-center bg-gray-950">
@@ -437,12 +455,12 @@
 
         <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1">Gradient Backgrounds</label>
         <div id="gradient-backgrounds" class="flex gap-1 w-min">
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-55 from-[#f68375] via-[#e95a9f] to-[#2f225e]" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-130 from-[#192357] to-[#b372cd]" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-130 from-[#010b46] to-[#1f85af]" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-35 from-[#4fbbbe] to-[#8fcd9f]" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-65 from-[#fb9857] to-[#ee7496]" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-            <button class="w-8 h-8 rounded-xl border border-gray-700 bg-linear-135 from-[#f9acc3] to-[#d67b99]" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+            <button class="w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
 
             <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
             <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
