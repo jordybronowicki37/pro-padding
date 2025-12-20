@@ -62,8 +62,6 @@
     ctxPreview = previewCanvasElement.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
     ctxCropped = croppedCanvas.getContext('2d', { willReadFrequently: true })!;
-    // TODO: for testing purposes
-    handleFile(null)
   });
 
   function handleFileEvent(e: Event) {
@@ -73,7 +71,7 @@
     handleFile(f)
   }
 
-  function handleFile(f: File | null) {
+  function handleFile(f: File) {
     image = new Image();
     image.onload = () => {
       originalWidth = image.width;
@@ -85,12 +83,7 @@
       detectAndCrop();
       drawPreview();
     };
-    // TODO: for testing purposes
-    if (f === null) {
-        image.src = '../test.png';
-    } else {
-        image.src = URL.createObjectURL(f);
-    }
+    image.src = URL.createObjectURL(f);
   }
 
   function colorDistance(a: number[], b: number[]): number {
