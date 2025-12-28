@@ -35,6 +35,7 @@
   let imageElement: HTMLInputElement;
   let customBackgroundImageElement: HTMLInputElement;
   let ctxPreview: CanvasRenderingContext2D;
+  let fileDialog: HTMLDialogElement
 
   let image: HTMLImageElement;
   let originalWidth = 0;
@@ -62,6 +63,7 @@
     ctxPreview = previewCanvasElement.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
     ctxCropped = croppedCanvas.getContext('2d', { willReadFrequently: true })!;
+    fileDialog.showModal()
   });
 
   function handleFileEvent(e: Event) {
@@ -69,6 +71,7 @@
     const f = target.files?.[0];
     if (!f) return;
     handleFile(f)
+    fileDialog.close()
   }
 
   function handleFile(f: File) {
@@ -421,15 +424,16 @@
   #main-image-input, #gradient-backgrounds>* {
     corner-shape: squircle;
   }
-
   #github-container {
     corner-top-left-shape: squircle;
   }
-
   #solid-background-transparent {
     background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
   }
-
+  #upload-file-dialog::backdrop {
+    backdrop-filter: blur(10px);
+    background: #0004;
+  }
   #solid-background-color-input {
     background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f);
 
@@ -525,3 +529,11 @@
     <a class="hover:underline" href="https://github.com/jordybronowicki37/pro-padding" target="_blank">View project on Github</a>
   </div>
 </div>
+
+<dialog bind:this={fileDialog} id="upload-file-dialog" class="place-self-center border border-slate-500 rounded-xl" closedby="none">
+  <div class="w-96 p-4 bg-slate-800 flex flex-col items-center">
+    <h2 class="text-white text-2xl">Upload a file</h2>
+    <p class="text-white text-sm mt-2 mb-2">To start editing your screenshot, you will need to upload the screenshot which you want to upload.</p>
+    <button class="cursor-pointer text-white p-1 hover:bg-slate-700 border border-slate-500 rounded" on:click={() => imageElement.click()}>Upload file</button>
+  </div>
+</dialog>
