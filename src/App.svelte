@@ -421,6 +421,9 @@
 </script>
 
 <style>
+  #preview-canvas {
+    max-height: 90vh;
+  }
   #main-image-input, #gradient-backgrounds>* {
     corner-shape: squircle;
   }
