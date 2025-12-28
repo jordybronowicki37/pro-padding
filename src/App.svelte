@@ -50,13 +50,13 @@
   let borderColor: string = '#000000';
   let borderRadiusPercentage: number = 10;
   let borderRadius: number = 0;
-  let background: Background = {type: 'solid', color: '#ff0000'};
+  let background: Background = {type: 'gradient', style: 'purple'};
 
   let croppedCanvas: HTMLCanvasElement;
   let ctxCropped: CanvasRenderingContext2D;
 
   let croppedRect: { left: number; top: number; width: number; height: number } | null = null;
-  let paddingColor: [number, number, number, number] = [255, 255, 255, 255];
+  let paddingColor: [number, number, number] = [255, 255, 255];
 
   onMount(() => {
     ctxPreview = previewCanvasElement.getContext('2d')!;
@@ -142,14 +142,14 @@
 
     if (right < left || bottom < top) {
       croppedRect = {left: 0, top: 0, width: w, height: h};
-      paddingColor = [borderColor[0], borderColor[1], borderColor[2], 255];
+      paddingColor = [borderColor[0], borderColor[1], borderColor[2]];
       return;
     }
 
     const cw = right - left + 1;
     const ch = bottom - top + 1;
 
-    paddingColor = [borderColor[0], borderColor[1], borderColor[2], 255];
+    paddingColor = [borderColor[0], borderColor[1], borderColor[2]];
 
     croppedRect = {left, top, width: cw, height: ch};
     const croppedData = ctxCropped.getImageData(left, top, cw, ch);
@@ -354,7 +354,7 @@
     ctxPreview.save();
     squircleRect(ctxPreview, totalMargin, totalMargin, boxW, boxH, borderRadius);
     ctxPreview.clip();
-    ctxPreview.fillStyle = `rgba(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]},${paddingColor[3] / 255})`;
+    ctxPreview.fillStyle = `rgb(${paddingColor[0]},${paddingColor[1]},${paddingColor[2]})`;
     ctxPreview.fillRect(totalMargin, totalMargin, boxW, boxH);
     ctxPreview.restore();
 
