@@ -422,6 +422,10 @@
     corner-shape: squircle;
   }
 
+  #github-container {
+    corner-top-left-shape: squircle;
+  }
+
   #solid-background-transparent {
     background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
   }
@@ -461,7 +465,7 @@
   }
 </style>
 
-<div class="h-screen flex items-center bg-gray-950">
+<div class="h-screen relative flex items-center bg-gray-950">
   <div class="bg-slate-800 border border-slate-500 border-l-0 rounded-r-lg">
     <div class="p-4">
       <h1 class="text-3xl font-bold mb-4 text-white">Pro-Padding</h1>
@@ -472,12 +476,12 @@
 
       <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Gradient Backgrounds</label>
       <div id="gradient-backgrounds" class="flex gap-1 w-min">
-        <button class="w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-        <button class="w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-        <button class="w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-        <button class="w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-        <button class="w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-        <button class="w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
+        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
 
         <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
         <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
@@ -486,12 +490,12 @@
       <label for="solid-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Solid Backgrounds</label>
       <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
         {#each solidBackgrounds as solidBackground}
-          <button class="w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+          <button class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
         {/each}
 
-        <button id="solid-background-transparent" class="w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
+        <button id="solid-background-transparent" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
 
-        <input id="solid-background-color-input" type="color" class="w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
+        <input id="solid-background-color-input" type="color" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
       </div>
 
       <label for="margin-input" class="block text-sm mt-4 mb-1 text-slate-100">Margin</label>
@@ -505,15 +509,19 @@
     </div>
 
     <div class="grid grid-cols-2 mt-2 border-t border-t-slate-500">
-      <button class="p-4 border-r border-r-slate-500 hover:bg-slate-700 text-slate-100" on:click={applyAndExport}>Download</button>
-      <button class="p-4 hover:bg-slate-700 text-slate-100" on:click={copyToClipboard}>Copy</button>
+      <button class="cursor-pointer p-4 border-r border-r-slate-500 hover:bg-slate-700 text-slate-100" on:click={applyAndExport}>Download</button>
+      <button class="cursor-pointer p-4 hover:bg-slate-700 text-slate-100" on:click={copyToClipboard}>Copy</button>
     </div>
   </div>
 
   <div class="m-12 flex-1 grid place-items-center">
     <div class="w-[70%] relative">
-      <label for="preview-canvas" class="absolute left-0 p-1 font-bold select-none">Preview</label>
+      <label for="preview-canvas" class="absolute text-white left-0 p-1 font-bold select-none">Preview</label>
       <canvas id="preview-canvas" bind:this={previewCanvasElement} class="border border-slate-600 w-full"></canvas>
     </div>
+  </div>
+
+  <div id="github-container" class="absolute bottom-0 right-0 text-white text-sm p-2 bg-slate-800 hover:bg-slate-700 border-t border-l border-slate-500 rounded-tl-xl">
+    <a class="hover:underline" href="https://github.com/jordybronowicki37/pro-padding" target="_blank">View project on Github</a>
   </div>
 </div>
