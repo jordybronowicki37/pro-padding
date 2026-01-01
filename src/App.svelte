@@ -36,28 +36,30 @@
   let customBackgroundImageElement: HTMLInputElement;
   let ctxPreview: CanvasRenderingContext2D;
   let fileDialog: HTMLDialogElement
+  let errorPopover: HTMLDivElement
 
   let image: HTMLImageElement;
   let originalWidth = 0;
   let originalHeight = 0;
 
   // UI state
-  const tolerance: number = 4;
-  let paddingPercentage: number = 10;
-  let padding: number = 0;
-  let marginPercentage: number = 10;
-  let margin: number = 0;
-  let borderThickness: number = 0;
-  let borderColor: string = '#000000';
-  let borderRadiusPercentage: number = 10;
-  let borderRadius: number = 0;
+  const tolerance = 4;
+  let paddingPercentage = 10;
+  let padding = 0;
+  let marginPercentage = 10;
+  let margin = 0;
+  let borderThickness = 0;
+  let borderColor = '#000000';
+  let borderRadiusPercentage = 10;
+  let borderRadius = 0;
   let background: Background = {type: 'gradient', style: 'purple'};
+  let paddingColor: [number, number, number] = [255, 255, 255];
 
   let croppedCanvas: HTMLCanvasElement;
   let ctxCropped: CanvasRenderingContext2D;
 
-  let croppedRect: { left: number; top: number; width: number; height: number } | null = null;
-  let paddingColor: [number, number, number] = [255, 255, 255];
+  let errorMessage = '';
+  let errorMessageTimerId: number | undefined;
 
   onMount(() => {
     ctxPreview = previewCanvasElement.getContext('2d')!;
@@ -70,7 +72,7 @@
     const target = e.target as HTMLInputElement;
     const f = target.files?.[0];
     if (!f) {
-      // TODO present error to user
+      showErrorMessage('No file was given.')
       return;
     }
     await handleImageFile(f)
@@ -79,22 +81,22 @@
 
   async function handleImageFile(f: File) {
     if (!f.type.startsWith('image/')) {
-      throw new Error('File is not an image');
-      // TODO present error to user
+      showErrorMessage('This file is not an image');
+      return;
     }
 
     let bitmap: ImageBitmap;
     try {
       bitmap = await createImageBitmap(f);
     } catch {
-      throw new Error('Invalid or corrupted image file');
-      // TODO present error to user
+      showErrorMessage('Invalid or corrupted image file');
+      return;
     }
 
     if (bitmap.width === 0 || bitmap.height === 0) {
       bitmap.close();
-      throw new Error('Image has invalid dimensions');
-      // TODO present error to user
+      showErrorMessage('Image has invalid dimensions');
+      return;
     }
 
     image = new Image();
@@ -113,8 +115,8 @@
 
   async function readImageFromClipboard() {
     if (!navigator.clipboard?.read) {
-      throw new Error('Clipboard access not supported in this browser.');
-      // TODO check this earlier and do not show the button
+      showErrorMessage('Clipboard access not supported in this browser.');
+      return;
     }
 
     try {
@@ -141,7 +143,7 @@
             const blob = await res.blob();
 
             if (!blob.type.startsWith('image/')) {
-              // TODO present error to user
+              showErrorMessage('Selected element is not an image.');
               return;
             }
 
@@ -152,12 +154,10 @@
         }
       }
 
-      alert('No image found in clipboard.\n\nTip: Copy an image from a webpage or take a screenshot.');
-      // TODO present error to user
+      showErrorMessage('No image found in clipboard.');
     } catch (err) {
       console.error(err);
-      alert('Clipboard access denied or unavailable.');
-      // TODO present error to user
+      showErrorMessage('Clipboard access denied or unavailable.');
     }
   }
 
@@ -205,6 +205,15 @@
     }
   }
 
+  function showErrorMessage(message: string) {
+    clearTimeout(errorMessageTimerId)
+    errorMessage = message;
+    errorPopover.showPopover();
+    errorMessageTimerId = setTimeout(() => {
+      errorPopover.hidePopover();
+    }, 4000);
+  }
+
   function colorDistance(a: number[], b: number[]): number {
     return Math.sqrt(
       (a[0] - b[0]) ** 2 +
@@ -250,6 +259,7 @@
     borderColor[0] = Math.round(borderColor[0] / 4);
     borderColor[1] = Math.round(borderColor[1] / 4);
     borderColor[2] = Math.round(borderColor[2] / 4);
+    paddingColor = [borderColor[0], borderColor[1], borderColor[2]];
 
     let top = 0, bottom = h - 1, left = 0, right = w - 1;
     const tol = Number(tolerance);
@@ -260,17 +270,11 @@
     while (right >= left && colMatches(data, w, h, right, borderColor, tol)) right--;
 
     if (right < left || bottom < top) {
-      croppedRect = {left: 0, top: 0, width: w, height: h};
-      paddingColor = [borderColor[0], borderColor[1], borderColor[2]];
       return;
     }
 
     const cw = right - left + 1;
     const ch = bottom - top + 1;
-
-    paddingColor = [borderColor[0], borderColor[1], borderColor[2]];
-
-    croppedRect = {left, top, width: cw, height: ch};
     const croppedData = ctxCropped.getImageData(left, top, cw, ch);
     croppedCanvas.width = cw;
     croppedCanvas.height = ch;
@@ -436,8 +440,6 @@
   }
 
   function drawPreview() {
-    if (!croppedRect) return;
-
     // Set variables and constants
     const imgW = croppedCanvas.width;
     const imgH = croppedCanvas.height;
@@ -615,3 +617,8 @@
     </div>
   </div>
 </dialog>
+
+<div bind:this={errorPopover} id="error-dialog" class="justify-self-center p-4 top-4 bg-red-950 border border-red-900 rounded-2xl" popover="manual">
+  <h2 class="text-xl font-bold text-white">Error</h2>
+  <p class="text-white">{errorMessage}</p>
+</div>
