@@ -71,6 +71,7 @@
     fileDialog.showModal();
   });
 
+  // region handling and reading images
   async function handleFileEvent(e: Event) {
     const target = e.target as HTMLInputElement;
     const f = target.files?.[0];
@@ -163,7 +164,9 @@
       showErrorMessage('Clipboard access denied or unavailable.');
     }
   }
+  // endregion
 
+  // region dragging images into view
   function onDragOver(e: DragEvent) {
     e.preventDefault();
     e.dataTransfer!.dropEffect = 'copy';
@@ -196,7 +199,9 @@
     handleImageFile(files[0]);
     fileDialog.close();
   }
+  // endregion
 
+  // region saving resulting image
   async function saveResultImage() {
     drawPreview();
 
@@ -240,7 +245,9 @@
       console.error('Failed to copy image:', err);
     }
   }
+  // endregion
 
+  // region misc site functionalities
   function showErrorMessage(message: string) {
     clearTimeout(errorMessageTimerId);
     errorMessage = message;
@@ -249,7 +256,9 @@
       errorPopover.hidePopover();
     }, 4000);
   }
+  // endregion
 
+  // region processing of source image
   function colorDistance(a: number[], b: number[]): number {
     return Math.sqrt(
       (a[0] - b[0]) ** 2 +
@@ -317,7 +326,9 @@
     croppedCanvas.height = ch;
     ctxCropped.putImageData(croppedData, 0, 0);
   }
+  // endregion
 
+  // region rendering the backgrounds
   function setSolidBackground(color: string) {
     background = {type: 'solid', color: color};
     drawPreview();
@@ -453,7 +464,9 @@
       //   break;
     }
   }
+  // endregion
 
+  // region rendering of resulting image
   function squircleRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     const SQUIRCLE = 0.25;
     const c = r * SQUIRCLE;
@@ -529,6 +542,7 @@
       ctxPreview.restore();
     }
   }
+  // endregion
 </script>
 
 <style>
