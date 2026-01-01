@@ -37,6 +37,7 @@
   let ctxPreview: CanvasRenderingContext2D;
   let fileDialog: HTMLDialogElement
   let errorPopover: HTMLDivElement
+  let dropFilePopover: HTMLDivElement
 
   let image: HTMLImageElement;
   let originalWidth = 0;
@@ -61,22 +62,24 @@
   let errorMessage = '';
   let errorMessageTimerId: number | undefined;
 
+  let dragDepth = 0;
+
   onMount(() => {
     ctxPreview = previewCanvasElement.getContext('2d')!;
     croppedCanvas = document.createElement('canvas');
     ctxCropped = croppedCanvas.getContext('2d', { willReadFrequently: true })!;
-    fileDialog.showModal()
+    fileDialog.showModal();
   });
 
   async function handleFileEvent(e: Event) {
     const target = e.target as HTMLInputElement;
     const f = target.files?.[0];
     if (!f) {
-      showErrorMessage('No file was given.')
+      showErrorMessage('No file was given.');
       return;
     }
-    await handleImageFile(f)
-    fileDialog.close()
+    await handleImageFile(f);
+    fileDialog.close();
   }
 
   async function handleImageFile(f: File) {
@@ -161,6 +164,39 @@
     }
   }
 
+  function onDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'copy';
+  }
+
+  function onDragEnter(e: DragEvent) {
+    e.preventDefault();
+    dragDepth++;
+    dropFilePopover.showPopover();
+  }
+
+  function onDragExit(e: DragEvent) {
+    e.preventDefault();
+    dragDepth--;
+
+    if (dragDepth <= 0) {
+      dragDepth = 0;
+      dropFilePopover.hidePopover();
+    }
+  }
+
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    dragDepth = 0;
+    dropFilePopover.hidePopover();
+
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    handleImageFile(files[0]);
+    fileDialog.close();
+  }
+
   async function saveResultImage() {
     drawPreview();
 
@@ -189,7 +225,7 @@
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(dataUrl)
+      URL.revokeObjectURL(dataUrl);
     }
   }
 
@@ -206,7 +242,7 @@
   }
 
   function showErrorMessage(message: string) {
-    clearTimeout(errorMessageTimerId)
+    clearTimeout(errorMessageTimerId);
     errorMessage = message;
     errorPopover.showPopover();
     errorMessageTimerId = setTimeout(() => {
@@ -507,9 +543,12 @@
   #solid-background-transparent {
     background: conic-gradient(#fff 90deg, #ccc 90deg, #ccc 180deg, #fff 180deg, #fff 270deg, #ccc 270deg);
   }
-  #upload-file-dialog::backdrop {
+  #upload-file-dialog::backdrop, #file-drop-upload-popover::backdrop {
     backdrop-filter: blur(10px);
     background: #0004;
+  }
+  #file-drop-message-box {
+    place-self: anchor-center;
   }
   #solid-background-color-input {
     background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f);
@@ -546,7 +585,7 @@
   }
 </style>
 
-<div class="h-screen relative flex items-center bg-gray-950">
+<div on:dragover={onDragOver} on:dragleave={onDragExit} on:dragenter={onDragEnter} on:drop={onDrop} role="application" class="h-screen relative flex items-center bg-gray-950">
   <div class="bg-slate-800 border border-slate-500 border-l-0 rounded-r-lg">
     <div class="p-4">
       <h1 class="text-3xl font-bold mb-4 text-white">Pro-Padding</h1>
@@ -607,7 +646,7 @@
   </div>
 </div>
 
-<dialog bind:this={fileDialog} id="upload-file-dialog" class="place-self-center border border-slate-500 rounded-xl" closedby="none">
+<dialog on:dragover={onDragOver} on:dragleave={onDragExit} on:dragenter={onDragEnter} on:drop={onDrop} bind:this={fileDialog} id="upload-file-dialog" class="place-self-center border border-slate-500 rounded-xl" closedby="none">
   <div class="w-96 p-4 bg-slate-800 flex flex-col items-center">
     <h2 class="text-white text-2xl">Upload a file</h2>
     <p class="text-white text-sm mt-2 mb-2">To start editing your screenshot, you will need to upload the screenshot which you want to upload.</p>
@@ -618,7 +657,19 @@
   </div>
 </dialog>
 
-<div bind:this={errorPopover} id="error-dialog" class="justify-self-center p-4 top-4 bg-red-950 border border-red-900 rounded-2xl" popover="manual">
+<div bind:this={errorPopover} class="justify-self-center p-4 top-4 bg-red-950 border border-red-900 rounded-2xl" popover="manual">
   <h2 class="text-xl font-bold text-white">Error</h2>
   <p class="text-white">{errorMessage}</p>
+</div>
+
+<div on:dragover={onDragOver} on:dragleave={onDragExit} on:dragenter={onDragEnter} on:drop={onDrop} bind:this={dropFilePopover} role="application" id="file-drop-upload-popover" class="w-screen h-screen place-self-center bg-transparent" popover="manual">
+  <div class="w-8 h-8 absolute top-4 left-4 border-t-4 border-l-4 border-white rounded-tl-2xl"></div>
+  <div class="w-8 h-8 absolute top-4 right-4 border-t-4 border-r-4 border-white rounded-tr-2xl"></div>
+  <div class="w-8 h-8 absolute bottom-4 right-4 border-b-4 border-r-4 border-white rounded-br-2xl"></div>
+  <div class="w-8 h-8 absolute bottom-4 left-4 border-b-4 border-l-4 border-white rounded-bl-2xl"></div>
+
+  <div id="file-drop-message-box" class="w-64 h-64 absolute flex flex-col items-center justify-center text-center gap-2 p-8 border border-white rounded-xl">
+    <h2 class="text-white text-xl">Drop file here</h2>
+    <p class="text-white">Drag and drop your file here to upload it to the editor.</p>
+  </div>
 </div>
