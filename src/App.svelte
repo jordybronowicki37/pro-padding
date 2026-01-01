@@ -35,9 +35,9 @@
   let imageElement: HTMLInputElement;
   let customBackgroundImageElement: HTMLInputElement;
   let ctxPreview: CanvasRenderingContext2D;
-  let fileDialog: HTMLDialogElement
-  let errorPopover: HTMLDivElement
-  let dropFilePopover: HTMLDivElement
+  let fileDialog: HTMLDialogElement;
+  let errorPopover: HTMLDivElement;
+  let dropFilePopover: HTMLDivElement;
 
   let image: HTMLImageElement;
   let originalWidth = 0;
@@ -300,10 +300,11 @@
     let top = 0, bottom = h - 1, left = 0, right = w - 1;
     const tol = Number(tolerance);
 
-    while (top <= bottom && rowMatches(data, w, top, borderColor, tol)) top++;
-    while (bottom >= top && rowMatches(data, w, bottom, borderColor, tol)) bottom--;
-    while (left <= right && colMatches(data, w, h, left, borderColor, tol)) left++;
-    while (right >= left && colMatches(data, w, h, right, borderColor, tol)) right--;
+    // Keep cropping the image down until it is balanced to the max
+    while (top < bottom && rowMatches(data, w, top, borderColor, tol)) top++;
+    while (bottom > top && rowMatches(data, w, bottom, borderColor, tol)) bottom--;
+    while (left < right && colMatches(data, w, h, left, borderColor, tol)) left++;
+    while (right > left && colMatches(data, w, h, right, borderColor, tol)) right--;
 
     if (right < left || bottom < top) {
       return;
@@ -340,9 +341,9 @@
   }
 
   function getRotatedGradient(angle: number): CanvasGradient {
-    angle += 90
-    const w = previewCanvasElement.width
-    const h = previewCanvasElement.height
+    angle += 90;
+    const w = previewCanvasElement.width;
+    const h = previewCanvasElement.height;
     const rad = (angle * Math.PI) / 180;
     const x0 = w / 2 + Math.cos(rad) * w;
     const y0 = h / 2 + Math.sin(rad) * h;
@@ -352,40 +353,40 @@
   }
 
   function drawGradientBackground(style: string) {
-    const w = previewCanvasElement.width
-    const h = previewCanvasElement.height
+    const w = previewCanvasElement.width;
+    const h = previewCanvasElement.height;
     let gradient: CanvasGradient;
 
     switch (style) {
       case 'pink':
-        gradient = getRotatedGradient(55)
+        gradient = getRotatedGradient(55);
         gradient.addColorStop(0, '#f68375');
         gradient.addColorStop(0.5, '#e95a9f');
         gradient.addColorStop(1, '#2f225e');
         break
       case 'purple':
-        gradient = getRotatedGradient(130)
+        gradient = getRotatedGradient(130);
         gradient.addColorStop(0, '#192357');
         gradient.addColorStop(1, '#b372cd');
         break
       case 'night':
-        gradient = getRotatedGradient(130)
+        gradient = getRotatedGradient(130);
         gradient.addColorStop(0, '#010b46');
         gradient.addColorStop(1, '#1f85af');
         break
       case 'ocean':
-        gradient = getRotatedGradient(35)
+        gradient = getRotatedGradient(35);
         gradient.addColorStop(0, '#4fbbbe');
         gradient.addColorStop(1, '#8fcd9f');
         break
       case 'red':
-        gradient = getRotatedGradient(65)
+        gradient = getRotatedGradient(65);
         gradient.addColorStop(0, '#fb9857');
         gradient.addColorStop(1, '#ee7496');
         break
       case 'bright-pink':
       default:
-        gradient = getRotatedGradient(45)
+        gradient = getRotatedGradient(45);
         gradient.addColorStop(0, '#f9acc3');
         gradient.addColorStop(1, '#d67b99');
     }
@@ -394,20 +395,20 @@
   }
 
   function drawBackground() {
-    const ctx = ctxPreview
-    const canvas = previewCanvasElement
-    const w = canvas.width
-    const h = canvas.height
+    const ctx = ctxPreview;
+    const canvas = previewCanvasElement;
+    const w = canvas.width;
+    const h = canvas.height;
     switch (background.type) {
       case 'solid':
         ctx.fillStyle = background.color;
         ctx.fillRect(0, 0, w, h);
         break;
       case "gradient":
-        drawGradientBackground(background.style)
+        drawGradientBackground(background.style);
         break;
       case 'image':
-        const img = background.image
+        const img = background.image;
         const canvasRatio = canvas.width / canvas.height;
         const imgRatio = img.width / img.height;
         let drawWidth, drawHeight, offsetX, offsetY;
@@ -479,9 +480,9 @@
     // Set variables and constants
     const imgW = croppedCanvas.width;
     const imgH = croppedCanvas.height;
-    padding = imgW * (paddingPercentage / 100)
-    margin = imgW * (marginPercentage / 100)
-    borderRadius = imgW * (borderRadiusPercentage / 100)
+    padding = imgW * (paddingPercentage / 100);
+    margin = imgW * (marginPercentage / 100);
+    borderRadius = imgW * (borderRadiusPercentage / 100);
     const newOutputW = imgW + padding * 2 + borderThickness * 2 + margin * 2;
     const newOutputH = imgH + padding * 2 + borderThickness * 2 + margin * 2;
     const totalMargin = margin + borderThickness;
