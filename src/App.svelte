@@ -1,16 +1,21 @@
 <script lang="ts">
   import {onMount} from 'svelte';
 
-  type Background = {
+  // region background typing and options
+  type BackgroundSolid = {
     type: 'solid',
     color: string
-  } | {
+  };
+  type BackgroundGradient = {
     type: 'gradient',
     style: string
-  } | {
+  };
+  type BackgroundImage = {
     type: 'image',
     image: HTMLImageElement
-  }
+  };
+
+  type Background = BackgroundSolid | BackgroundGradient | BackgroundImage;
 
   const solidBackgrounds = [
     '#131311',
@@ -28,9 +33,20 @@
     '#0c7eec',
     '#9ecff5',
     '#8032f8',
-    '#ceacf8'
+    '#ceacf8',
   ]
 
+  const gradientBackgrounds = [
+    'pink',
+    'purple',
+    'night',
+    'ocean',
+    'red',
+    'bright-pink',
+  ]
+  // endregion
+
+  // HTML elements
   let previewCanvasElement: HTMLCanvasElement;
   let imageElement: HTMLInputElement;
   let customBackgroundImageElement: HTMLInputElement;
@@ -38,12 +54,11 @@
   let fileDialog: HTMLDialogElement;
   let errorPopover: HTMLDivElement;
   let dropFilePopover: HTMLDivElement;
-
   let image: HTMLImageElement;
-  let originalWidth = 0;
-  let originalHeight = 0;
+  let croppedCanvas: HTMLCanvasElement;
+  let ctxCropped: CanvasRenderingContext2D;
 
-  // UI state
+  // State
   const tolerance = 4;
   let paddingPercentage = 10;
   let padding = 0;
@@ -56,12 +71,9 @@
   let background: Background = {type: 'gradient', style: 'purple'};
   let paddingColor: [number, number, number] = [255, 255, 255];
 
-  let croppedCanvas: HTMLCanvasElement;
-  let ctxCropped: CanvasRenderingContext2D;
-
+  // Other page functionalities
   let errorMessage = '';
   let errorMessageTimerId: number | undefined;
-
   let dragDepth = 0;
 
   onMount(() => {
@@ -105,10 +117,8 @@
 
     image = new Image();
     image.onload = () => {
-      originalWidth = image.width;
-      originalHeight = image.height;
-      croppedCanvas.width = originalWidth;
-      croppedCanvas.height = originalHeight;
+      croppedCanvas.width = image.width;
+      croppedCanvas.height = image.height;
       ctxCropped.clearRect(0, 0, croppedCanvas.width, croppedCanvas.height);
       ctxCropped.drawImage(image, 0, 0);
       detectAndCrop();
@@ -549,7 +559,7 @@
   #preview-canvas {
     max-height: 90vh;
   }
-  #main-image-input, #gradient-backgrounds>* {
+  .corner-shape-squircle {
     corner-shape: squircle;
   }
   #github-container {
@@ -605,32 +615,40 @@
     <div class="p-4">
       <h1 class="text-3xl font-bold mb-4 text-white">Pro-Padding</h1>
 
-      <label for="file-input" class="block text-sm mb-1 text-slate-100">Load image</label>
-      <button id="main-image-input" class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{image !== null ? image?.src : '/image-preview.png'}')" on:click={() => imageElement.click()} aria-label="Image input"></button>
-      <input hidden id="file-input" type="file" accept="image/*" bind:this={imageElement} on:change={handleFileEvent} />
-
-      <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Gradient Backgrounds</label>
-      <div id="gradient-backgrounds" class="flex gap-1 w-min">
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 pink" on:click={() => setGradientBackground('pink')} aria-label="Gradient background: pink"></button>
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 purple" on:click={() => setGradientBackground('purple')} aria-label="Gradient background: purple"></button>
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 night" on:click={() => setGradientBackground('night')} aria-label="Gradient background: night"></button>
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 ocean" on:click={() => setGradientBackground('ocean')} aria-label="Gradient background: ocean"></button>
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 red" on:click={() => setGradientBackground('red')} aria-label="Gradient background: red"></button>
-        <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 bright-pink" on:click={() => setGradientBackground('bright-pink')} aria-label="Gradient background: bright-pink"></button>
-
-        <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
-        <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
+      <div>
+        <label for="file-input" class="block text-sm mb-1 text-slate-100">Load image</label>
+        <button id="main-image-input" class="w-8 h-8 rounded-xl border border-dashed border-gray-700 corner-shape-squircle bg-center bg-no-repeat bg-cover" style="background-image:url('{image !== null ? image?.src : '/image-preview.png'}')" on:click={() => imageElement.click()} aria-label="Image input"></button>
+        <input hidden id="file-input" type="file" accept="image/*" bind:this={imageElement} on:change={handleFileEvent} />
       </div>
 
-      <label for="solid-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Solid Backgrounds</label>
-      <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
-        {#each solidBackgrounds as solidBackground}
-          <button class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
-        {/each}
+      <div>
+        <label for="solid-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Solid Backgrounds</label>
+        <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
+          {#each solidBackgrounds as solidBackground}
+            <button class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+          {/each}
 
-        <button id="solid-background-transparent" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
+          <button id="solid-background-transparent" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
 
-        <input id="solid-background-color-input" type="color" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
+          <input id="solid-background-color-input" type="color" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
+        </div>
+      </div>
+
+      <div>
+        <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Gradient Backgrounds</label>
+        <div id="gradient-backgrounds" class="flex gap-1 w-min">
+          {#each gradientBackgrounds as gradientBackground}
+            <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 corner-shape-squircle {gradientBackground}" on:click={() => setGradientBackground(gradientBackground)} aria-label="Gradient background: {gradientBackground}"></button>
+          {/each}
+        </div>
+      </div>
+
+      <div>
+        <label for="image-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Image Backgrounds</label>
+        <div id="image-backgrounds" class="flex gap-1 w-min">
+          <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 corner-shape-squircle bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
+        </div>
+        <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
       </div>
 
       <label for="margin-input" class="block text-sm mt-4 mb-1 text-slate-100">Margin</label>
