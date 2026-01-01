@@ -66,15 +66,37 @@
     fileDialog.showModal()
   });
 
-  function handleFileEvent(e: Event) {
+  async function handleFileEvent(e: Event) {
     const target = e.target as HTMLInputElement;
     const f = target.files?.[0];
-    if (!f) return;
-    handleFile(f)
+    if (!f) {
+      // TODO present error to user
+      return;
+    }
+    await handleImageFile(f)
     fileDialog.close()
   }
 
-  function handleFile(f: File) {
+  async function handleImageFile(f: File) {
+    if (!f.type.startsWith('image/')) {
+      throw new Error('File is not an image');
+      // TODO present error to user
+    }
+
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(f);
+    } catch {
+      throw new Error('Invalid or corrupted image file');
+      // TODO present error to user
+    }
+
+    if (bitmap.width === 0 || bitmap.height === 0) {
+      bitmap.close();
+      throw new Error('Image has invalid dimensions');
+      // TODO present error to user
+    }
+
     image = new Image();
     image.onload = () => {
       originalWidth = image.width;
@@ -87,6 +109,100 @@
       drawPreview();
     };
     image.src = URL.createObjectURL(f);
+  }
+
+  async function readImageFromClipboard() {
+    if (!navigator.clipboard?.read) {
+      throw new Error('Clipboard access not supported in this browser.');
+      // TODO check this earlier and do not show the button
+    }
+
+    try {
+      const items = await navigator.clipboard.read();
+
+      for (const item of items) {
+        // Direct image blob
+        const imageType = item.types.find(t => t.startsWith('image/'));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          await handleImageFile(new File([blob], `clipboard.${imageType.split('/')[1]}`, { type: imageType }));
+          fileDialog.close();
+          return;
+        }
+
+        // HTML image
+        if (item.types.includes('text/html')) {
+          const htmlBlob = await item.getType('text/html');
+          const html = await htmlBlob.text();
+
+          const match = html.match(/<img[^>]+src="([^">]+)"/i);
+          if (match) {
+            const res = await fetch(match[1], { mode: 'cors' });
+            const blob = await res.blob();
+
+            if (!blob.type.startsWith('image/')) {
+              // TODO present error to user
+              return;
+            }
+
+            await handleImageFile(new File([blob], 'clipboard.png', { type: blob.type }));
+            fileDialog.close();
+            return;
+          }
+        }
+      }
+
+      alert('No image found in clipboard.\n\nTip: Copy an image from a webpage or take a screenshot.');
+      // TODO present error to user
+    } catch (err) {
+      console.error(err);
+      alert('Clipboard access denied or unavailable.');
+      // TODO present error to user
+    }
+  }
+
+  async function saveResultImage() {
+    drawPreview();
+
+    if ('showSaveFilePicker' in window) {
+      const blob = await new Promise<Blob>((resolve) =>
+        previewCanvasElement.toBlob((b) => resolve(b!), 'image/png')
+      );
+      // @ts-ignore
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'pro-padding-image.png',
+        types: [
+          {
+            description: 'PNG Image',
+            accept: { 'image/png': ['.png'] }
+          }
+        ]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+    } else { // Fallback for browsers that do not support window.showSaveFilePicker
+      const dataUrl = previewCanvasElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'pro-padding-image.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(dataUrl)
+    }
+  }
+
+  async function copyResultImage() {
+    try {
+      const blob = await new Promise<Blob | null>(resolve => previewCanvasElement.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+    } catch (err) {
+      console.error('Failed to copy image:', err);
+    }
   }
 
   function colorDistance(a: number[], b: number[]): number {
@@ -374,50 +490,6 @@
       ctxPreview.restore();
     }
   }
-
-  async function applyAndExport() {
-    drawPreview();
-
-    if ('showSaveFilePicker' in window) {
-      const blob = await new Promise<Blob>((resolve) =>
-        previewCanvasElement.toBlob((b) => resolve(b!), 'image/png')
-      );
-      // @ts-ignore
-      const handle = await window.showSaveFilePicker({
-        suggestedName: 'pro-padding-image.png',
-        types: [
-          {
-            description: 'PNG Image',
-            accept: { 'image/png': ['.png'] }
-          }
-        ]
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } else { // Fallback for browsers that do not support window.showSaveFilePicker
-      const dataUrl = previewCanvasElement.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = 'pro-padding-image.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(dataUrl)
-    }
-  }
-
-  async function copyToClipboard() {
-    try {
-      const blob = await new Promise<Blob | null>(resolve => previewCanvasElement.toBlob(resolve, 'image/png'));
-      if (!blob) return;
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob })
-      ]);
-    } catch (err) {
-      console.error('Failed to copy image:', err);
-    }
-  }
 </script>
 
 <style>
@@ -516,8 +588,8 @@
     </div>
 
     <div class="grid grid-cols-2 mt-2 border-t border-t-slate-500">
-      <button class="cursor-pointer p-4 border-r border-r-slate-500 hover:bg-slate-700 text-slate-100" on:click={applyAndExport}>Download</button>
-      <button class="cursor-pointer p-4 hover:bg-slate-700 text-slate-100" on:click={copyToClipboard}>Copy</button>
+      <button class="cursor-pointer p-4 border-r border-r-slate-500 hover:bg-slate-700 text-slate-100" on:click={saveResultImage}>Download</button>
+      <button class="cursor-pointer p-4 hover:bg-slate-700 text-slate-100" on:click={copyResultImage}>Copy</button>
     </div>
   </div>
 
@@ -537,6 +609,9 @@
   <div class="w-96 p-4 bg-slate-800 flex flex-col items-center">
     <h2 class="text-white text-2xl">Upload a file</h2>
     <p class="text-white text-sm mt-2 mb-2">To start editing your screenshot, you will need to upload the screenshot which you want to upload.</p>
-    <button class="cursor-pointer text-white p-1 hover:bg-slate-700 border border-slate-500 rounded" on:click={() => imageElement.click()}>Upload file</button>
+    <div>
+      <button class="cursor-pointer text-white p-1 hover:bg-slate-700 border border-slate-500 rounded" type="button" on:click={readImageFromClipboard}>Paste from Clipboard</button>
+      <button class="cursor-pointer text-white p-1 hover:bg-slate-700 border border-slate-500 rounded" type="button" on:click={() => imageElement.click()}>Select file</button>
+    </div>
   </div>
 </dialog>
