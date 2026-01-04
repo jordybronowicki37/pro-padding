@@ -625,12 +625,12 @@
         <label for="solid-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Solid Backgrounds</label>
         <div id="solid-backgrounds" class="grid grid-rows-2 grid-flow-col gap-1 w-min">
           {#each solidBackgrounds as solidBackground}
-            <button class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" style="background:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
+            <button class="cursor-pointer w-5 h-5 rounded-xl border hover:border-white hover:border-2 {background.type === 'solid' && background.color === solidBackground ? 'border-gray-100' : 'border-gray-700'}" style="background-color:{solidBackground}" on:click={() => setSolidBackground(solidBackground)} aria-label="color: {solidBackground}"></button>
           {/each}
 
-          <button id="solid-background-transparent" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
+          <button id="solid-background-transparent" class="cursor-pointer w-5 h-5 rounded-xl border hover:border-white hover:border-2 {background.type === 'solid' && background.color === '#0000' ? 'border-gray-100' : 'border-gray-700'}" aria-label="color: #0000" on:click={() => setSolidBackground('#0000')}></button>
 
-          <input id="solid-background-color-input" type="color" class="cursor-pointer w-5 h-5 rounded-xl border border-gray-700" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
+          <input id="solid-background-color-input" type="color" class="cursor-pointer w-5 h-5 rounded-xl border hover:border-white hover:border-2 {background.type === 'solid' && ![...solidBackgrounds, '#0000'].includes(background.color) ? 'border-gray-100' : 'border-gray-700'}" on:input={(e) => setSolidBackground(e.currentTarget.value)} />
         </div>
       </div>
 
@@ -638,7 +638,7 @@
         <label for="gradient-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Gradient Backgrounds</label>
         <div id="gradient-backgrounds" class="flex gap-1 w-min">
           {#each gradientBackgrounds as gradientBackground}
-            <button class="cursor-pointer w-8 h-8 rounded-xl border border-gray-700 corner-shape-squircle {gradientBackground}" on:click={() => setGradientBackground(gradientBackground)} aria-label="Gradient background: {gradientBackground}"></button>
+            <button class="cursor-pointer w-8 h-8 rounded-xl border corner-shape-squircle hover:border-white hover:border-2 {gradientBackground} {background.type === 'gradient' && background.style === gradientBackground ? 'border-gray-100' : 'border-gray-700'}" on:click={() => setGradientBackground(gradientBackground)} aria-label="Gradient background: {gradientBackground}"></button>
           {/each}
         </div>
       </div>
@@ -646,18 +646,18 @@
       <div>
         <label for="image-backgrounds" class="block text-sm mt-4 mb-1 text-slate-100">Image Backgrounds</label>
         <div id="image-backgrounds" class="flex gap-1 w-min">
-          <button class="w-8 h-8 rounded-xl border border-dashed border-gray-700 corner-shape-squircle bg-center bg-no-repeat bg-cover" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
+          <button class="w-8 h-8 rounded-xl border border-dashed corner-shape-squircle hover:border-white hover:border-2 bg-center bg-no-repeat bg-cover {background.type === 'image' ? 'border-gray-100' : 'border-gray-700'}" style="background-image:url('{background.type === 'image' ? background.image?.src : '/image-preview.png'}')" on:click={() => customBackgroundImageElement.click()} aria-label="Custom background image"></button>
         </div>
         <input hidden type="file" accept="image/*" bind:this={customBackgroundImageElement} on:change={setImageBackground} />
       </div>
 
-      <label for="margin-input" class="block text-sm mt-4 mb-1 text-slate-100">Margin</label>
+      <label for="margin-input" class="block text-sm mt-4 mb-1 text-slate-100">Background size</label>
       <input id="margin-input" type="range" step="0.1" min="0" max="20" bind:value={marginPercentage} on:input={drawPreview} />
 
-      <label for="padding-input" class="block text-sm mt-4 mb-1 text-slate-100">Padding</label>
+      <label for="padding-input" class="block text-sm mt-4 mb-1 text-slate-100">Inset size</label>
       <input id="padding-input" type="range" step="0.1" min="0" max="20" bind:value={paddingPercentage} on:input={drawPreview} />
 
-      <label for="border-radius-input" class="block text-sm mt-4 mb-1 text-slate-100">Corner</label>
+      <label for="border-radius-input" class="block text-sm mt-4 mb-1 text-slate-100">Corner size</label>
       <input id="border-radius-input" type="range" step="0.1" min="0" max="20" bind:value={borderRadiusPercentage} on:input={drawPreview} />
     </div>
 
